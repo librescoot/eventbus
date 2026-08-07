@@ -93,3 +93,60 @@ func TestEmitAppendsToStream(t *testing.T) {
 		t.Errorf("To = %q", got.To)
 	}
 }
+
+func TestEmitChannelAndStreamAgreeOnSameEvent(t *testing.T) {
+	c := testClient(t)
+	defer c.Close()
+
+	sub := c.Raw().Subscribe(t.Context(), "ev:battery.inserted")
+	defer sub.Close()
+	if _, err := sub.Receive(t.Context()); err != nil {
+		t.Fatalf("subscribe: %v", err)
+	}
+
+	p := NewPublisher(c, "adapter", WithClock(func() int64 { return 99 }))
+	e := New(TopicBatteryInserted, "adapter")
+	e.To = "present"
+	if err := p.Emit(e); err != nil {
+		t.Fatalf("Emit: %v", err)
+	}
+
+	var fromChannel Event
+	select {
+	case msg := <-sub.Channel():
+		if err := json.Unmarshal([]byte(msg.Payload), &fromChannel); err != nil {
+			t.Fatalf("payload not valid Event JSON: %v (%s)", err, msg.Payload)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("no message on ev:battery.inserted within 2s")
+	}
+
+	res, err := c.Raw().XRevRangeN(t.Context(), StreamKey, "+", "-", 1).Result()
+	if err != nil {
+		t.Fatalf("XRevRangeN: %v", err)
+	}
+	if len(res) != 1 {
+		t.Fatalf("got %d stream entries, want 1", len(res))
+	}
+	raw, ok := res[0].Values["e"].(string)
+	if !ok {
+		t.Fatalf("stream entry has no string 'e' field: %v", res[0].Values)
+	}
+	var fromStream Event
+	if err := json.Unmarshal([]byte(raw), &fromStream); err != nil {
+		t.Fatalf("'e' field not valid Event JSON: %v", err)
+	}
+
+	if fromChannel.ID == "" {
+		t.Fatal("channel payload ID is empty")
+	}
+	if fromChannel.ID != res[0].ID {
+		t.Errorf("channel ID = %q, stream entry ID = %q, want equal", fromChannel.ID, res[0].ID)
+	}
+	if fromChannel.Topic != fromStream.Topic {
+		t.Errorf("channel Topic = %q, stream Topic = %q, want equal", fromChannel.Topic, fromStream.Topic)
+	}
+	if fromChannel.To != fromStream.To {
+		t.Errorf("channel To = %q, stream To = %q, want equal", fromChannel.To, fromStream.To)
+	}
+}
