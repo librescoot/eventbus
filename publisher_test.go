@@ -16,7 +16,7 @@ func testClient(t *testing.T) *ipc.Client {
 		t.Skipf("no datastore on localhost:6379: %v", err)
 	}
 	if err := c.Ping(); err != nil {
-		c.Close()
+		_ = c.Close()
 		t.Skipf("datastore not responding: %v", err)
 	}
 	return c
