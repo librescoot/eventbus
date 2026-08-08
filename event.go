@@ -1,10 +1,10 @@
-// Package events is the wire contract for the Librescoot event bus.
+// Package eventbus is the wire contract for the Librescoot event bus.
 //
 // It is imported both by event-service, which derives events from existing
 // Redis traffic, and by services that emit their own events directly. Keeping
 // the struct, the topic names and the trigger vocabulary in one place is what
 // stops the two from drifting.
-package events
+package eventbus
 
 // Event is one occurrence on the bus.
 //

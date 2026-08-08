@@ -1,4 +1,4 @@
-package events
+package eventbus
 
 // Topic names. Dotted so subscribers can filter server-side with
 // PSUBSCRIBE ev:vehicle.* rather than decoding every message.
@@ -19,7 +19,7 @@ const (
 	TopicVehicleSeatboxOpened    = "vehicle.seatbox.opened"
 	TopicVehicleSeatboxClosed    = "vehicle.seatbox.closed"
 	TopicVehicleHandlebarLocked  = "vehicle.handlebar.locked"
-	TopicVehicleHandlebarUnlock  = "vehicle.handlebar.unlocked"
+	TopicVehicleHandlebarUnlocked  = "vehicle.handlebar.unlocked"
 	TopicVehicleKickstandUp      = "vehicle.kickstand.up"
 	TopicVehicleKickstandDown    = "vehicle.kickstand.down"
 	TopicVehicleBlinkerChanged   = "vehicle.blinker.changed"
@@ -30,7 +30,7 @@ const (
 	TopicBatteryInserted     = "battery.inserted"
 	TopicBatteryRemoved      = "battery.removed"
 	TopicBatteryStateChanged = "battery.state.changed"
-	TopicBatteryChargeCross  = "battery.charge.crossed"
+	TopicBatteryChargeCrossed  = "battery.charge.crossed"
 	TopicAuxChargeCrossed    = "aux.charge.crossed"
 	TopicCBBChargeCrossed    = "cbb.charge.crossed"
 
