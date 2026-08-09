@@ -68,6 +68,13 @@ func NewPublisher(c *ipc.Client, src string, opts ...PublisherOption) *Publisher
 //
 // The stream ID is not known until the append succeeds, so the channel payload
 // carries it: this is why the two writes cannot simply be pipelined blind.
+//
+// If the stream append succeeds and the publish then fails, the event is
+// durably in the stream but never reaches live subscribers. Emit returns an
+// error for that case same as any other, and a caller that retries will
+// append a second copy of the event to the stream rather than lose it. The
+// stream is the recovery path: a consumer that missed the publish can still
+// pick the event up from there.
 func (p *Publisher) Emit(e Event) error {
 	e = p.stamp(e)
 
