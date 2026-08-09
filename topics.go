@@ -41,6 +41,9 @@ const (
 	TopicAlarmDisarmed  = "alarm.disarmed"
 	TopicAlarmTriggered = "alarm.triggered"
 
+	// The complete record: fires for every alarm status change.
+	TopicAlarmStatusChanged = "alarm.status.changed"
+
 	TopicMotionDetected = "motion.detected"
 
 	TopicECUFaultRaised  = "ecu.fault.raised"
