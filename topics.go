@@ -46,6 +46,13 @@ const (
 
 	TopicMotionDetected = "motion.detected"
 
+	// Not derived in v1: published vocabulary, not yet wired to the adapter.
+	// ecu-service publishes the literal string "fault" on the engine-ecu
+	// channel rather than the field name that changed, so the adapter's
+	// field-based watcher never sees "fault:code" arrive as a notification.
+	// Deriving these needs a producer-side change (publish the field name
+	// instead of a fixed signal), not an adapter fix. See
+	// EVENT-SERVICE-DESIGN.md section 5.4.
 	TopicECUFaultRaised  = "ecu.fault.raised"
 	TopicECUFaultCleared = "ecu.fault.cleared"
 
