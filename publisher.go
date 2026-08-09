@@ -71,13 +71,23 @@ func NewPublisher(c *ipc.Client, src string, opts ...PublisherOption) *Publisher
 func (p *Publisher) Emit(e Event) error {
 	e = p.stamp(e)
 
-	id, err := p.stream.Add(map[string]any{"topic": e.Topic, "e": mustJSON(e)})
+	streamBody, err := encodeJSON(e)
+	if err != nil {
+		return fmt.Errorf("encode event %s: %w", e.Topic, err)
+	}
+
+	id, err := p.stream.Add(map[string]any{"topic": e.Topic, "e": streamBody})
 	if err != nil {
 		return fmt.Errorf("append event to stream: %w", err)
 	}
 	e.ID = id
 
-	if _, err := p.client.Publish(ChannelPrefix+e.Topic, mustJSON(e)); err != nil {
+	channelBody, err := encodeJSON(e)
+	if err != nil {
+		return fmt.Errorf("encode event %s: %w", e.Topic, err)
+	}
+
+	if _, err := p.client.Publish(ChannelPrefix+e.Topic, channelBody); err != nil {
 		return fmt.Errorf("publish event on %s: %w", ChannelPrefix+e.Topic, err)
 	}
 	return nil
@@ -93,13 +103,14 @@ func (p *Publisher) stamp(e Event) Event {
 	return e
 }
 
-// mustJSON encodes e. Event contains only JSON-safe types by construction, so
-// an error here means a caller put something unmarshalable in Data, which is a
-// programming error worth surfacing loudly rather than dropping the event.
-func mustJSON(e Event) string {
+// encodeJSON marshals e. Data is a public map[string]any, so a producer can
+// put something unmarshalable in it (a channel, a func, NaN); that is the
+// caller's mistake, not this package's to crash the process over, so Emit
+// reports it as an error instead of panicking.
+func encodeJSON(e Event) (string, error) {
 	b, err := json.Marshal(e)
 	if err != nil {
-		panic(fmt.Sprintf("events: cannot marshal %s: %v", e.Topic, err))
+		return "", err
 	}
-	return string(b)
+	return string(b), nil
 }

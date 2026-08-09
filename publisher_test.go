@@ -94,6 +94,20 @@ func TestEmitAppendsToStream(t *testing.T) {
 	}
 }
 
+func TestEmitReturnsErrorRatherThanPanicForUnmarshalableData(t *testing.T) {
+	c := testClient(t)
+	defer c.Close()
+
+	p := NewPublisher(c, "adapter")
+	e := New(TopicBatteryInserted, "adapter")
+	e.Data = map[string]any{"bad": make(chan int)}
+
+	err := p.Emit(e)
+	if err == nil {
+		t.Fatal("Emit() = nil, want an error for unmarshalable Data")
+	}
+}
+
 func TestEmitChannelAndStreamAgreeOnSameEvent(t *testing.T) {
 	c := testClient(t)
 	defer c.Close()
