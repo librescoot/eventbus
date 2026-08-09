@@ -50,9 +50,11 @@ const (
 	// ecu-service publishes the literal string "fault" on the engine-ecu
 	// channel rather than the field name that changed, so the adapter's
 	// field-based watcher never sees "fault:code" arrive as a notification.
-	// Deriving these needs a producer-side change (publish the field name
-	// instead of a fixed signal), not an adapter fix. See
-	// EVENT-SERVICE-DESIGN.md section 5.4.
+	// modem-service's PublishLocationState is the only writer of the gps
+	// hash, and it never notifies on the fix field at all, silently or
+	// otherwise. Deriving either pair needs a producer-side change (publish
+	// the field name for ecu.fault, notify on write for gps.fix), not an
+	// adapter fix. See EVENT-SERVICE-DESIGN.md section 5.4.
 	TopicECUFaultRaised  = "ecu.fault.raised"
 	TopicECUFaultCleared = "ecu.fault.cleared"
 
